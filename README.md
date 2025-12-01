@@ -1,36 +1,28 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## Brewery excise calculator
 
-## Getting Started
+This readme serves as a changelog for this project.
 
-First, run the development server:
+The purpose of this project is to automate the calculation of excise tax for breweries.
+
+## How to calculate excise AUSTRALIA
+
+[Find current excise rates here](https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/excise-on-alcohol/excise-duty-rates-for-alcohol)
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+Beer – formula for excise duty
+The excise duty for beer is worked out on the alcoholic content above 1.15%:
+* Total volume (litres) of product × (alcohol strength – 1.15%) × current excise duty rate. 
+
+Example: calculating excise duty for beer
+Brewery Co delivers 10 cases of beer, each containing 24×355 ml bottles with 5% alcohol by volume into the Australian domestic market on 8 March 2023.
+The beer is classified to sub-item 1.10 in the Schedule to the Excise Tariff Act 1921 and has a duty rate of $57.79 per litre of alcohol (as at 1 February 2023).
+
+The duty payable is calculated as follows:
+10 cases × 24 bottles × 0.355 litres each = 85.2 litres
+85.2 litres × (5% − 1.15%) = 328.02 OR 3.28 LALs.
+
+For the purpose of calculating duty payable, the LALs are truncated to one decimal place.
+The LALs are then multiplied by the relevant duty rate, in March 2023, to find out the duty payable:
+3.2 × $57.79 = $184.92.
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
