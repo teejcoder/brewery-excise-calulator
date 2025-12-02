@@ -4,14 +4,14 @@ This readme serves as a changelog for this project.
 
 The purpose of this project is to automate the calculation of excise tax for breweries.
 
-## How to calculate excise AUSTRALIA
+## How to calculate excise duty - AUSTRALIA.
 
 [Find current excise rates here](https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/excise-on-alcohol/excise-duty-rates-for-alcohol)
 
-```bash
-Beer – formula for excise duty
+## Beer – formula for excise duty
+
 The excise duty for beer is worked out on the alcoholic content above 1.15%:
-* Total volume (litres) of product × (alcohol strength – 1.15%) × current excise duty rate. 
+Total volume (litres) of product × (alcohol strength – 1.15%) × current excise duty rate.
 
 Example: calculating excise duty for beer
 Brewery Co delivers 10 cases of beer, each containing 24×355 ml bottles with 5% alcohol by volume into the Australian domestic market on 8 March 2023.
@@ -24,5 +24,7 @@ The duty payable is calculated as follows:
 For the purpose of calculating duty payable, the LALs are truncated to one decimal place.
 The LALs are then multiplied by the relevant duty rate, in March 2023, to find out the duty payable:
 3.2 × $57.79 = $184.92.
-```
+
+
+## Overview
 
