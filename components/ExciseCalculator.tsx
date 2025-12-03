@@ -6,18 +6,7 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Calendar } from "./ui/calendar";
 import { Popover, PopoverTrigger, PopoverContent } from "./ui/popover";
-
-type SubmissionFormData = {
-  size: string;
-  abv: string;
-  exciseDutyRate: string;
-  productName: string;
-  batchDate: Date | undefined;
-  preciseLal: string; // e.g. "3.28"
-  truncatedLal: number; // e.g. 3.2 (tax rule: truncated to 1 dp)
-  dutyPayable: number; // e.g. 184.92 (truncated to 2 dp)
-  submittedAt: string;
-};
+import type { SubmissionFormData } from "@/types/batch";
 
 export default function ExciseCalculator() {
   const [size, setSize] = useState<string>("");
