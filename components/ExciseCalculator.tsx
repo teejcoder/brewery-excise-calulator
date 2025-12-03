@@ -6,7 +6,7 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Calendar } from "./ui/calendar";
 import { Popover, PopoverTrigger, PopoverContent } from "./ui/popover";
-import type { SubmissionFormData } from "@/types/batch";
+import { SubmissionFormData } from "@/types/batch";
 
 export default function ExciseCalculator() {
   const [size, setSize] = useState<string>("");
@@ -110,6 +110,7 @@ export default function ExciseCalculator() {
           Total volume (litres) × (ABV% – 1.15%) × current excise duty rate.
         </span>
       </div>
+
       <form className="flex flex-col gap-4">
         <Label htmlFor="size">Total Volume (litres)*</Label>
         <Input
@@ -216,14 +217,14 @@ export default function ExciseCalculator() {
             <Card key={s.submittedAt} className="p-4 bg-gray-50">
               <h3 className="text-md font-medium">{s.productName || "Untitled product"}</h3>
               <p className="text-xs text-gray-500">Submitted: {new Date(s.submittedAt).toLocaleString()}</p>
-              <div className="mt-2">
+              <div className="mt-2 text-center space-y-1">
                 <p>Batch Date: {s.batchDate ? s.batchDate.toLocaleDateString() : "N/A"}</p>
                 <p>Total Volume (litres): {s.size}</p>
                 <p>ABV%: {s.abv}</p>
                 <p>Excise Duty Rate: {s.exciseDutyRate}</p>
                 <p>Precise LAL: {s.preciseLal}</p>
                 <p>Truncated LAL (for duty): {s.truncatedLal.toFixed(1)}</p>
-                <p className="text-lime/20">Excise Duty Payable: ${s.dutyPayable.toFixed(2)}</p>
+                <p>Excise Duty Payable: <span className="font-bold text-green-700">${s.dutyPayable.toFixed(2)}</span></p>
               </div>
             </Card>
           ))}
