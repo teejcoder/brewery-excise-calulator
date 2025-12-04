@@ -1,79 +1,243 @@
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import * as z from "zod"
+"use client";
 
-const ingredientSchema = z.object({
-  name: z.string().min(1, "Ingredient name is required"),
-  amount: z.string().min(1, "Ingredient amount is required"),
-  type: z.enum(["grain", "hop", "yeast", "adjunct", "other"]).optional(),
-});
-
-const batchDataSchema = z.object({
-  productName: z.string().min(1, "Product name is required"),
-  batchDate: z.date().optional(),
-
-  og: z
-    .number()
-    .min(1.0, "OG must be at least 1.000")
-    .max(1.2, "OG cannot exceed 1.200"),
-  fg: z
-    .number()
-    .min(1.0, "FG must be at least 1.000")
-    .max(1.2, "FG cannot exceed 1.200"),
-  abv: z
-    .number()
-    .min(0, "ABV% cannot be negative")
-    .max(100, "ABV% cannot exceed 100%"),
-
-  packagedLitres: z.number().min(0.1, "Size must be at least 0.1 litres"),
-  exciseDutyRate: z.number().min(0, "Excise duty rate cannot be negative"),
-
-  preciseLal: z.number().min(0, "LAL cannot be negative"),
-  truncatedLal: z.number().min(0, "LAL cannot be negative"),
-  dutyPayable: z.number().min(0, "Duty payable cannot be negative"),
-
-  mashTempC: z.number().min(0).optional(),
-  boiltimeMins: z.number().min(0).optional(),
-  fermentationTempC: z.number().min(0).optional(),
-  yeast: z.string().optional(),
-  notes: z.string().optional(),
-
-  ingredients: z.array(ingredientSchema).optional(),
-});
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { batchDataSchema } from "@/lib/schemas/batch";
+import * as z from "zod";
+import { Button } from "./ui/button";
+import { toast } from "sonner";
+import {
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+  FieldLegend,
+  FieldSeparator,
+  FieldSet,
+} from "./ui/field";
+import { Input } from "./ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { Calendar } from "./ui/calendar";
+import { useState } from "react";
 
 export default function BrewNotesClient() {
-    const form = useForm<z.infer<typeof batchDataSchema>>({
+  const [batchDate, setBatchDate] = useState<Date | undefined>(undefined);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+
+  const form = useForm<z.infer<typeof batchDataSchema>>({
     resolver: zodResolver(batchDataSchema),
     defaultValues: {
       productName: "",
-      batchDate: undefined,
-      og: 1.050,
-      fg: 1.010,
+      batchDate: batchDate,
+      og: 1.05,
+      fg: 1.01,
       abv: 5.0,
       packagedLitres: 85.2,
-      exciseDutyRate: 60.0,
-      preciseLal: 0,
-      truncatedLal: 0,
-      dutyPayable: 0,
+      ingredients: "",
+
       mashTempC: 0,
       boiltimeMins: 0,
       fermentationTempC: 0,
       yeast: "",
       notes: "",
-      ingredients: [],
+
+      exciseDutyRate: 57.79,
+      dutyPayable: 0,
+      preciseLal: 0,
+      truncatedLal: 0,
+
+      createdAt: new Date(),
     },
   });
 
+  function onClickHandler() {
+    return toast("Event has been created", {
+      description: "You can view it in your calendar.",
+    });
+  }
 
   return (
     <section className="flex flex-col p-6 bg-gray-10 rounded-md shadow-md w-full">
-      <div className="mb-6">
-        <h1 className="text-2xl text-center">
-          Brew Notes & Excise Duty Calculator
-        </h1>
-        <span className="text-xs">
-          Total volume (litres) × (ABV% – 1.15%) × current excise duty rate.
-        </span>
+      <div className="mb-6 gap-2 flex flex-col">
+        <div className="mb-6">
+          <h1 className="text-2xl text-center text-balance">
+            Brew Notes & Excise Duty Calculator
+          </h1>
+          <span className="text-xs text-balance">
+            This form captures brew notes and calculates excise duty payable for
+            beer production in Australia.
+          </span>
+        </div>
+
+        <form className="mb-6">
+          <FieldGroup>
+            <FieldSet>
+              <FieldLegend>Section 1. Batch Info</FieldLegend>
+              <FieldDescription>Batch</FieldDescription>
+              <FieldGroup>
+                <Field>
+                  <FieldLabel htmlFor="productName">Product Name*</FieldLabel>
+                  <Input id="productName" placeholder="Mango Sour" required />
+                </Field>
+
+                <Field>
+                  <FieldLabel htmlFor="batchDate">Batch Date*</FieldLabel>
+                  <Popover
+                    open={isCalendarOpen}
+                    onOpenChange={setIsCalendarOpen}
+                  >
+                    <PopoverTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        className="w-full text-left rounded-md border px-3 py-2"
+                        onClick={() => setIsCalendarOpen(true)}
+                      >
+                        {batchDate
+                          ? batchDate.toLocaleDateString()
+                          : "Select batch date"}
+                      </Button>
+                    </PopoverTrigger>
+
+                    <PopoverContent sideOffset={8} className="">
+                      <Calendar
+                        id="batchDate"
+                        className="text-center"
+                        mode="single"
+                        selected={batchDate}
+                        onSelect={(d) => {
+                          setBatchDate(d as Date | undefined);
+                          setIsCalendarOpen(false);
+                        }}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </Field>
+
+                <Field>
+                  <FieldLabel>OG</FieldLabel>
+                  <Input id="og" placeholder="1.050" />
+                </Field>
+
+                <Field>
+                  <FieldLabel>FG</FieldLabel>
+                  <Input id="fg" placeholder="1.010" />
+                </Field>
+
+                <Field>
+                  <FieldLabel>ABV*</FieldLabel>
+                  <Input id="abv" placeholder="5.0" />
+                </Field>
+
+                <Field>
+                  <FieldLabel>Packaged Litres*</FieldLabel>
+                  <Input id="packagedLitres" placeholder="85.2" />
+                </Field>
+
+                <Field>
+                  <FieldLabel htmlFor="ingredients">Ingredients</FieldLabel>
+                  <textarea
+                    id="ingredients"
+                    placeholder="Your feedback helps us improve..."
+                    className="text-sm rounded-md border border-gray-300 p-2 w-full"
+                    rows={3}
+                  />
+                </Field>
+              </FieldGroup>
+            </FieldSet>
+
+            <FieldSeparator />
+
+            <FieldSet>
+              <FieldLegend>Section 2. Brew Process</FieldLegend>
+              <FieldDescription>
+                Enter details about your brewing process
+              </FieldDescription>
+              <FieldGroup>
+                <Field>
+                  <FieldLabel>Mash Temp (°C)</FieldLabel>
+                  <Input id="mashTempC" placeholder="64" />
+                </Field>
+
+                <Field>
+                  <FieldLabel>Boil Time (mins)</FieldLabel>
+                  <Input id="boilTimeMins" placeholder="60" />
+                </Field>
+
+                <Field>
+                  <FieldLabel>Fermentation Temp (°C)</FieldLabel>
+                  <Input id="fermentationTempC" placeholder="12" />
+                </Field>
+
+                <Field>
+                  <FieldLabel htmlFor="yeast">Yeast</FieldLabel>
+                  <Input id="yeast" placeholder="Ale yeast" />
+                </Field>
+
+                <Field>
+                  <FieldLabel htmlFor="notes">Notes</FieldLabel>
+                  <textarea
+                    id="notes"
+                    placeholder="Notes about the brew..."
+                    className="text-sm rounded-md border border-gray-300 p-2 w-full"
+                    rows={3}
+                  />
+                </Field>
+              </FieldGroup>
+            </FieldSet>
+
+            <FieldSeparator />
+
+            <FieldSet>
+              <FieldLegend>Step 3. Excise Duty Calculation</FieldLegend>
+              <FieldDescription>
+                Enter details to calculate excise duty payable
+              </FieldDescription>
+              <FieldGroup>
+                <Field>
+                  <FieldLabel htmlFor="size">Batch Size (litres)*</FieldLabel>
+                  <Input
+                    id="size"
+                    placeholder="85.2"
+                    type="number"
+                    step="0.01"
+                    required
+                  />
+                </Field>
+
+                <Field>
+                  <FieldLabel htmlFor="abv">
+                    Alcohol By Volume (ABV%)*
+                  </FieldLabel>
+                  <Input
+                    id="abv"
+                    placeholder="5.0"
+                    type="number"
+                    step="0.01"
+                    required
+                  />
+                </Field>
+
+                <Field>
+                  <FieldLabel htmlFor="exciseDutyRate">
+                    Excise Duty Rate (AUD per litre)*
+                  </FieldLabel>
+                  <Input
+                    id="exciseDutyRate"
+                    placeholder="57.79"
+                    type="number"
+                    step="0.01"
+                    required
+                  />
+                </Field>
+              </FieldGroup>
+            </FieldSet>
+          </FieldGroup>
+        </form>
+
+        <Button onClick={onClickHandler} className="mt-6">
+          Toast!
+        </Button>
       </div>
     </section>
   );

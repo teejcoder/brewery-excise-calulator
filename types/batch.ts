@@ -11,13 +11,7 @@ export type SubmissionFormData = {
   submittedAt: string;
 };
 
-export type Ingredient = {
-    name: string;
-    amount: string;
-    type?: "grain" | "hop" | "yeast" | "adjunct" | "other";
-}
-
-export type BatchData = {
+export type BatchDataType = {
   productName: string;
   batchDate: Date;
 
@@ -38,7 +32,7 @@ export type BatchData = {
   yeast?: string;
   notes?: string;
 
-  ingredients?: Ingredient[];
+  ingredients?: string;
 
   createdAt: string;
 };
