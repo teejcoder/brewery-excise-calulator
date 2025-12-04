@@ -19,40 +19,18 @@ import { Input } from "./ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Calendar } from "./ui/calendar";
 import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 
 export default function BrewNotesClient() {
-  const [batchDate, setBatchDate] = useState<Date | undefined>(undefined);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   const form = useForm<z.infer<typeof batchDataSchema>>({
     resolver: zodResolver(batchDataSchema),
-    defaultValues: {
-      productName: "",
-      batchDate: batchDate,
-      og: 1.05,
-      fg: 1.01,
-      abv: 5.0,
-      packagedLitres: 85.2,
-      ingredients: "",
-
-      mashTempC: 0,
-      boiltimeMins: 0,
-      fermentationTempC: 0,
-      yeast: "",
-      notes: "",
-
-      exciseDutyRate: 57.79,
-      dutyPayable: 0,
-      preciseLal: 0,
-      truncatedLal: 0,
-
-      createdAt: new Date(),
-    },
   });
 
   function onClickHandler() {
-    return toast("Event has been created", {
-      description: "You can view it in your calendar.",
+    return toast("Brew data submitted successfully", {
+      description: JSON.stringify(form.getValues(), null, 2),
     });
   }
 
@@ -77,7 +55,12 @@ export default function BrewNotesClient() {
               <FieldGroup>
                 <Field>
                   <FieldLabel htmlFor="productName">Product Name*</FieldLabel>
-                  <Input id="productName" placeholder="Mango Sour" required />
+                  <Input
+                    id="productName"
+                    placeholder="Mango Sour"
+                    {...form.register("productName")}
+                    required
+                  />
                 </Field>
 
                 <Field>
@@ -91,10 +74,9 @@ export default function BrewNotesClient() {
                         type="button"
                         variant="ghost"
                         className="w-full text-left rounded-md border px-3 py-2"
-                        onClick={() => setIsCalendarOpen(true)}
                       >
-                        {batchDate
-                          ? batchDate.toLocaleDateString()
+                        {form.getValues("batchDate")
+                          ? form.getValues("batchDate")?.toLocaleDateString()
                           : "Select batch date"}
                       </Button>
                     </PopoverTrigger>
@@ -104,9 +86,9 @@ export default function BrewNotesClient() {
                         id="batchDate"
                         className="text-center"
                         mode="single"
-                        selected={batchDate}
+                        selected={form.getValues("batchDate")}
                         onSelect={(d) => {
-                          setBatchDate(d as Date | undefined);
+                          form.setValue("batchDate", d as Date | undefined);
                           setIsCalendarOpen(false);
                         }}
                       />
@@ -116,22 +98,17 @@ export default function BrewNotesClient() {
 
                 <Field>
                   <FieldLabel>OG</FieldLabel>
-                  <Input id="og" placeholder="1.050" />
+                  <Input id="og" placeholder="1.050" {...form.register("og")} />
                 </Field>
 
                 <Field>
                   <FieldLabel>FG</FieldLabel>
-                  <Input id="fg" placeholder="1.010" />
+                  <Input id="fg" placeholder="1.010" {...form.register("fg")} />
                 </Field>
 
                 <Field>
                   <FieldLabel>ABV*</FieldLabel>
-                  <Input id="abv" placeholder="5.0" />
-                </Field>
-
-                <Field>
-                  <FieldLabel>Packaged Litres*</FieldLabel>
-                  <Input id="packagedLitres" placeholder="85.2" />
+                  <Input id="abv" placeholder="5.0" {...form.register("abv")} />
                 </Field>
 
                 <Field>
@@ -141,6 +118,7 @@ export default function BrewNotesClient() {
                     placeholder="Your feedback helps us improve..."
                     className="text-sm rounded-md border border-gray-300 p-2 w-full"
                     rows={3}
+                    {...form.register("ingredients")}
                   />
                 </Field>
               </FieldGroup>
@@ -156,22 +134,38 @@ export default function BrewNotesClient() {
               <FieldGroup>
                 <Field>
                   <FieldLabel>Mash Temp (°C)</FieldLabel>
-                  <Input id="mashTempC" placeholder="64" />
+                  <Input
+                    id="mashTempC"
+                    placeholder="64"
+                    {...form.register("mashTempC")}
+                  />
                 </Field>
 
                 <Field>
                   <FieldLabel>Boil Time (mins)</FieldLabel>
-                  <Input id="boilTimeMins" placeholder="60" />
+                  <Input
+                    id="boilTimeMins"
+                    placeholder="60"
+                    {...form.register("boiltimeMins")}
+                  />
                 </Field>
 
                 <Field>
                   <FieldLabel>Fermentation Temp (°C)</FieldLabel>
-                  <Input id="fermentationTempC" placeholder="12" />
+                  <Input
+                    id="fermentationTempC"
+                    placeholder="12"
+                    {...form.register("fermentationTempC")}
+                  />
                 </Field>
 
                 <Field>
                   <FieldLabel htmlFor="yeast">Yeast</FieldLabel>
-                  <Input id="yeast" placeholder="Ale yeast" />
+                  <Input
+                    id="yeast"
+                    placeholder="Ale yeast"
+                    {...form.register("yeast")}
+                  />
                 </Field>
 
                 <Field>
@@ -181,6 +175,7 @@ export default function BrewNotesClient() {
                     placeholder="Notes about the brew..."
                     className="text-sm rounded-md border border-gray-300 p-2 w-full"
                     rows={3}
+                    {...form.register("notes")}
                   />
                 </Field>
               </FieldGroup>
@@ -195,12 +190,15 @@ export default function BrewNotesClient() {
               </FieldDescription>
               <FieldGroup>
                 <Field>
-                  <FieldLabel htmlFor="size">Batch Size (litres)*</FieldLabel>
+                  <FieldLabel htmlFor="packagedLitres">
+                    Packaged Litres*
+                  </FieldLabel>
                   <Input
-                    id="size"
+                    id="packagedLitres"
                     placeholder="85.2"
                     type="number"
                     step="0.01"
+                    {...form.register("packagedLitres")}
                     required
                   />
                 </Field>
@@ -214,6 +212,7 @@ export default function BrewNotesClient() {
                     placeholder="5.0"
                     type="number"
                     step="0.01"
+                    {...form.register("abv")}
                     required
                   />
                 </Field>
@@ -227,6 +226,7 @@ export default function BrewNotesClient() {
                     placeholder="57.79"
                     type="number"
                     step="0.01"
+                    {...form.register("exciseDutyRate")}
                     required
                   />
                 </Field>
@@ -239,6 +239,17 @@ export default function BrewNotesClient() {
           Toast!
         </Button>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Form Values (for debugging)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <pre className="text-xs">
+            {JSON.stringify(form.getValues(), null, 2)}
+          </pre>
+        </CardContent>
+      </Card>
     </section>
   );
 }

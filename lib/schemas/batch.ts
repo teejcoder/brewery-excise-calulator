@@ -1,4 +1,4 @@
-import * as z from "zod"
+import * as z from "zod";
 
 export const batchDataSchema = z.object({
   productName: z.string().min(1, "Product name is required"),
@@ -15,7 +15,6 @@ export const batchDataSchema = z.object({
     .number()
     .min(0, "ABV% cannot be negative")
     .max(100, "ABV% cannot exceed 100%"),
-  packagedLitres: z.number().min(0.1, "Size must be at least 0.1 litres"),
   ingredients: z.string().optional(),
 
   mashTempC: z.number().min(0).optional(),
@@ -24,10 +23,11 @@ export const batchDataSchema = z.object({
   yeast: z.string().optional(),
   notes: z.string().optional(),
 
+  packagedLitres: z.number().min(0.1, "Size must be at least 0.1 litres"),
   exciseDutyRate: z.number().min(0, "Excise duty rate cannot be negative"),
   dutyPayable: z.number().min(0, "Duty payable cannot be negative"),
-  preciseLal: z.number().min(0, "LAL cannot be negative"),
-  truncatedLal: z.number().min(0, "LAL cannot be negative"),
+  preciseLal: z.number().min(0, "Precise LAL cannot be negative"),
+  truncatedLal: z.number().min(0, "Truncated LAL cannot be negative"),
 
   createdAt: z.date().optional(),
 });
