@@ -28,3 +28,27 @@ The LALs are then multiplied by the relevant duty rate, in March 2023, to find o
 
 ## Overview
 
+Section 1: Batch Information
+* Product name
+* Batch date
+* OG / FG
+* ABV
+* Ingredients
+
+Section 2: Brew Process
+* Mash Temp
+* Boil Time
+* Fermentation Temp
+* Yeast
+* Notes
+
+Section 3: Excise Calculation
+* Duty rate
+* Packaged litres
+* LALs
+* Duty payable
+
+This gives the brewer a clear mental model:
+* “What beer did we make?”
+* “How did we brew it?”
+* “How much tax do we owe?”
