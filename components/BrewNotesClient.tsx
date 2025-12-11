@@ -23,6 +23,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 
 export default function BrewNotesClient() {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [exciseDutyPayable, setExciseDutyPayable] = useState<number | null>(null);
 
   const form = useForm<z.infer<typeof batchDataSchema>>({
     resolver: zodResolver(batchDataSchema),
@@ -219,7 +220,14 @@ export default function BrewNotesClient() {
 
                 <Field>
                   <FieldLabel htmlFor="exciseDutyRate">
-                    Excise Duty Rate (AUD per litre)*
+                    Excise Duty Rate*
+                    <a
+                      href="https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/excise-on-alcohol/excise-duty-rates-for-alcohol"
+                      target="__blank"
+                      className="text-xs underline"
+                    >
+                      Current excise rates
+                    </a>
                   </FieldLabel>
                   <Input
                     id="exciseDutyRate"
@@ -236,7 +244,7 @@ export default function BrewNotesClient() {
         </form>
 
         <Button onClick={onClickHandler} className="mt-6">
-          Toast!
+          Submit
         </Button>
       </div>
 
@@ -245,7 +253,7 @@ export default function BrewNotesClient() {
           <CardTitle>Form Values (for debugging)</CardTitle>
         </CardHeader>
         <CardContent>
-          <pre className="text-xs">
+          <pre className="text-xs overflow-x-auto">
             {JSON.stringify(form.getValues(), null, 2)}
           </pre>
         </CardContent>
