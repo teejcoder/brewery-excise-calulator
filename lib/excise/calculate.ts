@@ -1,5 +1,5 @@
 function calculateAbv(og: number, fg: number) {
-  return (og - fg) * 131.25;
+  return parseFloat(((og - fg) * 131.25).toFixed(2));
 }
 
 function truncateHelper(value: number, decimals: number): number {
