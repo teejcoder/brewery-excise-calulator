@@ -449,7 +449,7 @@ export default function BrewNotesClient() {
                         <p>
                           <strong>Truncated LAL:</strong> {s.truncatedLal ?? "-"}
                         </p>
-                        <p>
+                        <p className="text-red-600">
                           <strong>Duty Payable (AUD):</strong> {s.dutyPayable ?? "-"}
                         </p>
                         <p className="text-xs text-gray-500">Submitted: {new Date(s.submittedAt).toLocaleString()}</p>
