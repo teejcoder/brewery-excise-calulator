@@ -31,3 +31,5 @@ function calculateExciseDuty(batchSize: number, abv: number) {
 
   return truncatedExciseDuty; // truncated to 2 decimal places
 }
+
+export { calculateAbv, calculateLal, calculateLalTruncated, calculateExciseDuty };

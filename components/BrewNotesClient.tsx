@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { batchDataSchema } from "@/lib/schemas/batch";
 import * as z from "zod";
 import { Button } from "./ui/button";
@@ -18,20 +18,137 @@ import {
 import { Input } from "./ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Calendar } from "./ui/calendar";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import {
+  calculateAbv,
+  calculateLalTruncated,
+  calculateLal,
+} from "@/lib/excise/calculate";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 
 export default function BrewNotesClient() {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-  const [exciseDutyPayable, setExciseDutyPayable] = useState<number | null>(null);
+  const [submissions, setSubmissions] = useState<Array<Record<string, any>>>([]);
+  const [expandedMap, setExpandedMap] = useState<Record<string, boolean>>({});
+
+  // Load submissions from localStorage once on mount
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("brew_submissions");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          setSubmissions(parsed);
+        }
+      }
+    } catch (e) {
+      // ignore parse errors
+    }
+  }, []);
+
+  // Persist submissions to localStorage whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem("brew_submissions", JSON.stringify(submissions));
+    } catch (e) {
+      // ignore quota errors
+    }
+  }, [submissions]);
+
+  function toggleExpanded(id: string) {
+    setExpandedMap((prev) => ({ ...prev, [id]: !prev[id] }));
+  }
+
+  function clearHistory() {
+    localStorage.removeItem("brew_submissions");
+    setSubmissions([]);
+    setExpandedMap({});
+  }
 
   const form = useForm<z.infer<typeof batchDataSchema>>({
     resolver: zodResolver(batchDataSchema),
   });
 
+  // Watch inputs we need to derive values from. useWatch makes these
+  // values update live as the user types without introducing local state.
+  const [watchedOg, watchedFg, watchedPackagedLitres, watchedExciseRate] =
+    useWatch({
+      control: form.control,
+      name: ["og", "fg", "packagedLitres", "exciseDutyRate"],
+    }) as Array<unknown>;
+
+  function safeNumber(v: unknown): number | undefined {
+    if (v === undefined || v === null || v === "") return undefined;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : undefined;
+  }
+
+  const parsedOg = safeNumber(watchedOg);
+  const parsedFg = safeNumber(watchedFg);
+
+  // Derived ABV (percent). Calculate only when both OG and FG are valid numbers.
+  const derivedAbv =
+    parsedOg !== undefined && parsedFg !== undefined
+      ? calculateAbv(parsedOg, parsedFg)
+      : undefined;
+
+  const abvDisplay = derivedAbv !== undefined ? derivedAbv.toFixed(2) : "";
+
+  // LAL uses the existing helper. It expects ABV as percent (e.g. 5.0).
+  const parsedPackaged = safeNumber(watchedPackagedLitres);
+  const parsedRate = safeNumber(watchedExciseRate);
+
+  const lal =
+    parsedPackaged !== undefined && derivedAbv !== undefined
+      ? calculateLalTruncated(parsedPackaged, derivedAbv)
+      : undefined;
+
+  // Excise duty: use user-provided rate if present, otherwise default to 57.79
+  const exciseDuty =
+    lal !== undefined
+      ? Math.trunc(lal * (parsedRate ?? 57.79) * 100) / 100
+      : undefined;
+
   function onClickHandler() {
+    // Ensure batchDate includes the time of submission: merge selected date
+    // (which usually contains only a date) with the current time.
+    const selected = form.getValues("batchDate") as Date | undefined;
+    const now = new Date();
+    const finalBatchDate = selected ? new Date(selected) : new Date();
+    finalBatchDate.setHours(
+      now.getHours(),
+      now.getMinutes(),
+      now.getSeconds(),
+      now.getMilliseconds()
+    );
+
+    // Update the form's batchDate so debug panel shows the correct datetime.
+    form.setValue("batchDate", finalBatchDate as any);
+
+    // Prepare derived values to include in the returned payload.
+    const abvForOutput = derivedAbv;
+    const preciseLal =
+      parsedPackaged !== undefined && abvForOutput !== undefined
+        ? parseFloat(calculateLal(parsedPackaged, abvForOutput))
+        : undefined;
+    const truncatedLalForOutput = lal;
+    const dutyForOutput = exciseDuty;
+
+    const output = {
+      ...form.getValues(),
+      batchDate: finalBatchDate,
+      abv: abvForOutput,
+      preciseLal: preciseLal,
+      truncatedLal: truncatedLalForOutput,
+      dutyPayable: dutyForOutput,
+      submittedAt: new Date().toISOString(),
+    };
+
+    // store submission for rendering a history of cards
+    setSubmissions((prev) => [output, ...prev]);
+
     return toast("Brew data submitted successfully", {
-      description: JSON.stringify(form.getValues(), null, 2),
+      description: JSON.stringify(output, null, 2),
     });
   }
 
@@ -109,7 +226,9 @@ export default function BrewNotesClient() {
 
                 <Field>
                   <FieldLabel>ABV*</FieldLabel>
-                  <Input id="abv" placeholder="5.0" {...form.register("abv")} />
+                  {/* ABV is derived from OG/FG and shown as a read-only value. It is not
+                      registered with react-hook-form to avoid duplicating derived state. */}
+                  <Input id="abv" placeholder="5.0" value={abvDisplay} readOnly />
                 </Field>
 
                 <Field>
@@ -205,16 +324,17 @@ export default function BrewNotesClient() {
                 </Field>
 
                 <Field>
-                  <FieldLabel htmlFor="abv">
-                    Alcohol By Volume (ABV%)*
-                  </FieldLabel>
+                  <FieldLabel htmlFor="abv">Alcohol By Volume (ABV%)*</FieldLabel>
+                  {/* Use the same derived ABV in the excise section; display-only. */}
+                  <Input id="abv" placeholder="5.0" value={abvDisplay} readOnly />
+                </Field>
+
+                <Field>
+                  <FieldLabel>Labelling Alcohol Litres (LAL)</FieldLabel>
                   <Input
-                    id="abv"
-                    placeholder="5.0"
-                    type="number"
-                    step="0.01"
-                    {...form.register("abv")}
-                    required
+                    id="lal"
+                    value={lal !== undefined ? String(lal) : ""}
+                    readOnly
                   />
                 </Field>
 
@@ -238,6 +358,14 @@ export default function BrewNotesClient() {
                     required
                   />
                 </Field>
+                <Field>
+                  <FieldLabel>Excise Duty Payable (AUD)</FieldLabel>
+                  <Input
+                    id="exciseDuty"
+                    value={exciseDuty !== undefined ? exciseDuty.toFixed(2) : ""}
+                    readOnly
+                  />
+                </Field>
               </FieldGroup>
             </FieldSet>
           </FieldGroup>
@@ -248,16 +376,111 @@ export default function BrewNotesClient() {
         </Button>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Form Values (for debugging)</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <pre className="text-xs overflow-x-auto">
-            {JSON.stringify(form.getValues(), null, 2)}
-          </pre>
-        </CardContent>
-      </Card>
+      {/* Render submitted cards (newest first) */}
+      {submissions.length > 0 && (
+        <div className="">
+          <div className="flex flex-col items-center justify-between gap-6 mb-3">
+            <div className="text-sm text-gray-600">{submissions.length} submission(s)</div>
+            <div className="flex gap-2 mb-6">
+              <Button onClick={() => setExpandedMap(() => ({}))} className="text-sm">
+                Collapse All
+              </Button>
+              <Button onClick={clearHistory} className="text-sm bg-red-50 text-red-700">
+                Clear History
+              </Button>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {submissions.map((s, idx) => {
+              const id = (s.submittedAt ?? String(idx)) as string;
+              const expanded = Boolean(expandedMap[id]);
+              return (
+                <Card key={id} className="bg-gray-50">
+                  <CardHeader>
+                    <div className="w-full flex items-start justify-between gap-4">
+                      <div>
+                        <CardTitle className="text-base">{s.productName || "Untitled product"}</CardTitle>
+                        <div className="text-xs text-gray-500">{s.batchDate ? new Date(s.batchDate).toLocaleString() : "-"}</div>
+                      </div>
+                      <div>
+                        <Button onClick={() => toggleExpanded(id)} className="text-sm">
+                          {expanded ? "Collapse" : "Expand"}
+                        </Button>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  {expanded && (
+                    <CardContent>
+                      <div className="text-sm space-y-1">
+                        <p>
+                          <strong>OG / FG:</strong> {s.og || "-"} / {s.fg || "-"}
+                        </p>
+                        <p>
+                          <strong>ABV%:</strong> {s.abv ?? "-"}
+                        </p>
+                        <p>
+                          <strong>Ingredients:</strong> {s.ingredients || "-"}
+                        </p>
+                        <p>
+                          <strong>Mash Temp (°C):</strong> {s.mashTempC || "-"}
+                        </p>
+                        <p>
+                          <strong>Boil Time (mins):</strong> {s.boiltimeMins || "-"}
+                        </p>
+                        <p>
+                          <strong>Fermentation Temp (°C):</strong> {s.fermentationTempC || "-"}
+                        </p>
+                        <p>
+                          <strong>Yeast:</strong> {s.yeast || "-"}
+                        </p>
+                        <p>
+                          <strong>Notes:</strong> {s.notes || "-"}
+                        </p>
+                        <p>
+                          <strong>Packaged Litres:</strong> {s.packagedLitres || "-"}
+                        </p>
+                        <p>
+                          <strong>Excise Rate:</strong> {s.exciseDutyRate || "-"}
+                        </p>
+                        <p>
+                          <strong>Precise LAL:</strong> {s.preciseLal ?? "-"}
+                        </p>
+                        <p>
+                          <strong>Truncated LAL:</strong> {s.truncatedLal ?? "-"}
+                        </p>
+                        <p>
+                          <strong>Duty Payable (AUD):</strong> {s.dutyPayable ?? "-"}
+                        </p>
+                        <p className="text-xs text-gray-500">Submitted: {new Date(s.submittedAt).toLocaleString()}</p>
+                      </div>
+                    </CardContent>
+                  )}
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {
+        form.formState.errors && Object.keys(form.formState.errors).length > 0 && (
+          <Card className="mb-6 border border-red-500">
+            <CardHeader>
+              <CardTitle className="text-red-600">Validation Errors</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="list-disc list-inside text-sm text-red-700">
+                {Object.entries(form.formState.errors).map(([field, error]) => (
+                  <li key={field}>
+                    <strong>{field}:</strong> {error?.message as string}
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+        ) 
+      }
     </section>
   );
 }
