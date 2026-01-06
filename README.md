@@ -2,7 +2,7 @@
 
 This readme serves as a changelog for this project.
 
-The purpose of this project is to automate the calculation of excise tax for breweries.
+The purpose of this project is to automate the calculation of excise tax for micro-breweries.
 
 ## How to calculate excise duty - AUSTRALIA.
 
@@ -24,7 +24,6 @@ The duty payable is calculated as follows:
 For the purpose of calculating duty payable, the LALs are truncated to one decimal place.
 The LALs are then multiplied by the relevant duty rate, in March 2023, to find out the duty payable:
 3.2 × $57.79 = $184.92.
-
 
 ## Overview
 
