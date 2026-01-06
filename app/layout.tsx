@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Excise Duty Calculator",
+  title: "Litre & Levy | Australian Beer Excise Calculator",
   description: "Calulate excise duty for beer production in AUSTRALIA.",
 };
 

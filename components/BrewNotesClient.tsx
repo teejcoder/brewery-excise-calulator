@@ -28,7 +28,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 
 export default function BrewNotesClient() {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-  const [submissions, setSubmissions] = useState<Array<Record<string, any>>>([]);
+  const [submissions, setSubmissions] = useState<Array<Record<string, any>>>(
+    []
+  );
   const [expandedMap, setExpandedMap] = useState<Record<string, boolean>>({});
 
   // Load submissions from localStorage once on mount
@@ -153,19 +155,25 @@ export default function BrewNotesClient() {
   }
 
   return (
-    <section className="flex flex-col p-6 bg-gray-10 rounded-md shadow-md w-full">
+    <Card className="flex flex-col p-6 w-full">
       <div className="mb-6 gap-2 flex flex-col">
         <div className="mb-6">
-          <h1 className="text-2xl text-center text-balance">
-            Brew Notes & Excise Duty Calculator
-          </h1>
-          <span className="text-xs text-balance">
-            This form captures brew notes and calculates excise duty payable for
-            beer production in Australia.
-          </span>
+          <h1 className="text-2xl text-center text-balance">Litre & Levy</h1>
+          <div className="text-xs text-balance gap-2 flex flex-col mt-2">
+            <p>
+              This form captures brew notes and calculates excise duty payable
+              for beer production in Australia.
+            </p>
+            <p>
+              Do not use for commercial or compliance purposes just yet as this
+              product is still in production. <br/> All data is stored locally in your
+              browser's storage and is not sent to any server.
+            </p>
+          </div>
         </div>
+        <FieldSeparator />
 
-        <form className="mb-6">
+        <form className="my-6">
           <FieldGroup>
             <FieldSet>
               <FieldLegend>Section 1. Batch Info</FieldLegend>
@@ -228,7 +236,12 @@ export default function BrewNotesClient() {
                   <FieldLabel>ABV*</FieldLabel>
                   {/* ABV is derived from OG/FG and shown as a read-only value. It is not
                       registered with react-hook-form to avoid duplicating derived state. */}
-                  <Input id="abv" placeholder="5.0" value={abvDisplay} readOnly />
+                  <Input
+                    id="abv"
+                    placeholder="5.0"
+                    value={abvDisplay}
+                    readOnly
+                  />
                 </Field>
 
                 <Field>
@@ -324,9 +337,16 @@ export default function BrewNotesClient() {
                 </Field>
 
                 <Field>
-                  <FieldLabel htmlFor="abv">Alcohol By Volume (ABV%)*</FieldLabel>
+                  <FieldLabel htmlFor="abv">
+                    Alcohol By Volume (ABV%)*
+                  </FieldLabel>
                   {/* Use the same derived ABV in the excise section; display-only. */}
-                  <Input id="abv" placeholder="5.0" value={abvDisplay} readOnly />
+                  <Input
+                    id="abv"
+                    placeholder="5.0"
+                    value={abvDisplay}
+                    readOnly
+                  />
                 </Field>
 
                 <Field>
@@ -362,7 +382,9 @@ export default function BrewNotesClient() {
                   <FieldLabel>Excise Duty Payable (AUD)</FieldLabel>
                   <Input
                     id="exciseDuty"
-                    value={exciseDuty !== undefined ? exciseDuty.toFixed(2) : ""}
+                    value={
+                      exciseDuty !== undefined ? exciseDuty.toFixed(2) : ""
+                    }
                     readOnly
                   />
                 </Field>
@@ -380,12 +402,20 @@ export default function BrewNotesClient() {
       {submissions.length > 0 && (
         <div className="">
           <div className="flex flex-col items-center justify-between gap-6 mb-3">
-            <div className="text-sm text-gray-600">{submissions.length} submission(s)</div>
+            <div className="text-sm text-gray-600">
+              {submissions.length} submission(s)
+            </div>
             <div className="flex gap-2 mb-6">
-              <Button onClick={() => setExpandedMap(() => ({}))} className="text-sm">
+              <Button
+                onClick={() => setExpandedMap(() => ({}))}
+                className="text-sm"
+              >
                 Collapse All
               </Button>
-              <Button onClick={clearHistory} className="text-sm bg-red-50 text-red-700">
+              <Button
+                onClick={clearHistory}
+                className="text-sm bg-red-50 text-red-700"
+              >
                 Clear History
               </Button>
             </div>
@@ -400,11 +430,20 @@ export default function BrewNotesClient() {
                   <CardHeader>
                     <div className="w-full flex items-start justify-between gap-4">
                       <div>
-                        <CardTitle className="text-base">{s.productName || "Untitled product"}</CardTitle>
-                        <div className="text-xs text-gray-500">{s.batchDate ? new Date(s.batchDate).toLocaleString() : "-"}</div>
+                        <CardTitle className="text-base">
+                          {s.productName || "Untitled product"}
+                        </CardTitle>
+                        <div className="text-xs text-gray-500">
+                          {s.batchDate
+                            ? new Date(s.batchDate).toLocaleString()
+                            : "-"}
+                        </div>
                       </div>
                       <div>
-                        <Button onClick={() => toggleExpanded(id)} className="text-sm">
+                        <Button
+                          onClick={() => toggleExpanded(id)}
+                          className="text-sm"
+                        >
                           {expanded ? "Collapse" : "Expand"}
                         </Button>
                       </div>
@@ -414,7 +453,8 @@ export default function BrewNotesClient() {
                     <CardContent>
                       <div className="text-sm space-y-1">
                         <p>
-                          <strong>OG / FG:</strong> {s.og || "-"} / {s.fg || "-"}
+                          <strong>OG / FG:</strong> {s.og || "-"} /{" "}
+                          {s.fg || "-"}
                         </p>
                         <p>
                           <strong>ABV%:</strong> {s.abv ?? "-"}
@@ -426,10 +466,12 @@ export default function BrewNotesClient() {
                           <strong>Mash Temp (°C):</strong> {s.mashTempC || "-"}
                         </p>
                         <p>
-                          <strong>Boil Time (mins):</strong> {s.boiltimeMins || "-"}
+                          <strong>Boil Time (mins):</strong>{" "}
+                          {s.boiltimeMins || "-"}
                         </p>
                         <p>
-                          <strong>Fermentation Temp (°C):</strong> {s.fermentationTempC || "-"}
+                          <strong>Fermentation Temp (°C):</strong>{" "}
+                          {s.fermentationTempC || "-"}
                         </p>
                         <p>
                           <strong>Yeast:</strong> {s.yeast || "-"}
@@ -438,21 +480,27 @@ export default function BrewNotesClient() {
                           <strong>Notes:</strong> {s.notes || "-"}
                         </p>
                         <p>
-                          <strong>Packaged Litres:</strong> {s.packagedLitres || "-"}
+                          <strong>Packaged Litres:</strong>{" "}
+                          {s.packagedLitres || "-"}
                         </p>
                         <p>
-                          <strong>Excise Rate:</strong> {s.exciseDutyRate || "-"}
+                          <strong>Excise Rate:</strong>{" "}
+                          {s.exciseDutyRate || "-"}
                         </p>
                         <p>
                           <strong>Precise LAL:</strong> {s.preciseLal ?? "-"}
                         </p>
                         <p>
-                          <strong>Truncated LAL:</strong> {s.truncatedLal ?? "-"}
+                          <strong>Truncated LAL:</strong>{" "}
+                          {s.truncatedLal ?? "-"}
                         </p>
-                        <p className="text-red-600">
-                          <strong>Duty Payable (AUD):</strong> {s.dutyPayable ?? "-"}
+                        <p>
+                          <strong>Duty Payable (AUD):</strong>{" "}
+                          {s.dutyPayable ?? "-"}
                         </p>
-                        <p className="text-xs text-gray-500">Submitted: {new Date(s.submittedAt).toLocaleString()}</p>
+                        <p className="text-xs text-gray-500">
+                          Submitted: {new Date(s.submittedAt).toLocaleString()}
+                        </p>
                       </div>
                     </CardContent>
                   )}
@@ -463,8 +511,8 @@ export default function BrewNotesClient() {
         </div>
       )}
 
-      {
-        form.formState.errors && Object.keys(form.formState.errors).length > 0 && (
+      {form.formState.errors &&
+        Object.keys(form.formState.errors).length > 0 && (
           <Card className="mb-6 border border-red-500">
             <CardHeader>
               <CardTitle className="text-red-600">Validation Errors</CardTitle>
@@ -479,8 +527,7 @@ export default function BrewNotesClient() {
               </ul>
             </CardContent>
           </Card>
-        ) 
-      }
-    </section>
+        )}
+    </Card>
   );
 }
