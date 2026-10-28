@@ -165,8 +165,7 @@ export default function BrewNotesClient() {
               for beer production in Australia.
             </p>
             <p>
-              Do not use for commercial or compliance purposes just yet as this
-              product is still in production. <br/> All data is stored locally in your
+              Public demo of a client tool. <br/> All data is stored locally in your
               browser's storage and is not sent to any server.
             </p>
           </div>
